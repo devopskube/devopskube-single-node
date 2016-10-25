@@ -1,0 +1,31 @@
+#cloud-config
+hostname: devopskube0
+ssh-authorized-keys:
+- <YOUR-PUBLIC-KEY>
+coreos:
+    units:
+        - name: 01-eth0.network
+          runtime: true
+          content: |
+            [Match]
+            Name=eth0
+
+            [Network]
+            DNS=8.8.8.8
+            Address=172.17.42.1
+        - name: etcd2.service
+          command: start
+        - name: fleet.service
+          command: start
+    etcd2:
+        discovery: "<YOUR-DISCOVERY_URL>"
+        # multi-region and multi-cloud deployments need to use $public_ipv4
+        advertise-client-urls: "http://172.17.42.1:2379"
+        initial-advertise-peer-urls: "http://172.17.42.1:2380"
+        # listen on both the official ports and the legacy ports
+        # legacy ports can be omitted if your application doesn't depend on them
+        listen-client-urls: "http://0.0.0.0:2379,http://0.0.0.0:4001"
+        listen-peer-urls: "http://172.17.42.1:2380,http://172.17.42.1:7001"
+    fleet:
+        metadata: "region=de"
+        public-ip: "192.168.0.1"

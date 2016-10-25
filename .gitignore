@@ -1,0 +1,6 @@
+*.private.yml
+*.private
+init-ssl
+init-ssl-ca
+*.sh
+ssl
