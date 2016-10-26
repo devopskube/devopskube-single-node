@@ -121,11 +121,9 @@ export KUBECONFIG="${KUBECONFIG}:$(pwd)/kubeconfig"
 kubectl config use-context netcup
 ``
 
-### Add useful pods
+### Pre-Requisites to use UI (SSL-Login-Certificate)
 
-#### Pre-Requisite (SSL-Login-Certificate)
-
-To be able to login to the following pods, k18s expects you to have an certificate. This can be
+To be able to login to the UI, k8s expects you to have an certificate. This can be
 generated using the already created ssl-certificates:
 
 ``
@@ -133,49 +131,6 @@ openssl pkcs12 -export -in ./ssl/admin.pem -inkey ./ssl/admin-key.pem -out ./ssl
 ``
 
 Afterwards you have to import the generated file into chromium using the used password.
-
-Then you can modify your kubeconfig and connect via kubectl via:
-
-``
-export KUBECONFIG=$(pwd)/kubeconfig.private
-kubectl config use-context netcup
-``
-
-#### Kubernetes Dashboard (Management)
-
-We are going to add the [Kubernetes Dashboard](https://github.com/kubernetes/dashboard) the following two
-commands should be executed, so that the Administration is helped by a nice web-ui.
-
-``
-kubectl create -f https://rawgit.com/kubernetes/dashboard/master/src/deploy/kubernetes-dashboard.yaml
-``
-
-Afterwards the Dashboad can be reached on the URL:
-
-``
-https://<PUBLIC_IP_HOST>/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#/replicationcontrollers
-``
-
-Please note, that to be able to login to the above mentioned dashboard, the Certificate should be
-imported in Chrome.
-
-#### Kubernetes Dash (Monitoring)
-
-To show the Monitoring information, the [Kubernetes Dash](https://github.com/kubernetes/kubedash) should
-be installed using the following command:
-
-``
-kubectl create -f addon/kubedash-config.yaml
-``
-
-Afterwards the Monitoring can be reached via the following URL:
-
-``
-https://<PUBLIC_IP_HOST>/api/v1/proxy/namespaces/kube-system/services/kubedash/#!/
-``
-
-Please note, that to be able to login to the above mentioned dash, the Certificate should be
-imported in Chrome.
 
 ## TODO
 
