@@ -37,10 +37,7 @@ export USE_CALICO=false
 export CONTAINER_RUNTIME=docker
 
 # Advertised IP of the master (cluster IP that is)
-export ADVERTISE_IP=172.17.42.1
-
-# External IP of the master
-export EXTERNAL_IP=<YOUR_IP>
+export ADVERTISE_IP=<YOUR_IP>
 
 # Port to open the API on to the external
 export EXTERNAL_SSL_PORT=444
@@ -282,7 +279,7 @@ spec:
     - --allow-privileged=true
     - --service-cluster-ip-range=${SERVICE_IP_RANGE}
     - --secure-port=${EXTERNAL_SSL_PORT}
-    - --advertise-address=${EXTERNAL_IP}
+    - --advertise-address=${ADVERTISE_IP}
     - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem

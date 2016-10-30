@@ -109,7 +109,6 @@ sudo chmod u+x /var/lib/coreos-kubernetes/user_data
 sudo /var/lib/coreos-kubernetes/user_data
 ``
 
-
 ### Execute kubectl
 
 To be able to execute kubectl on your local machine, you have to provide a valid kubeconfig. There is
@@ -132,8 +131,13 @@ openssl pkcs12 -export -in ./ssl/admin.pem -inkey ./ssl/admin-key.pem -out ./ssl
 
 Afterwards you have to import the generated file into chromium using the used password.
 
-## TODO
+## Update CoreOS
 
-[] Add email possibility for Redmine
-[] Make Redmine and other containers SSL-aware
-[] Ingress needs 443, blocked by kube-apiserver (/etc/kubernetes/manifests/kube-apiserver.yaml), use port 444 in there and restart kubelet service
+``
+sudo /usr/bin/systemctl unmask update-engine.service  
+sudo /usr/bin/systemctl start update-engine.service  
+sudo update_engine_client -update  
+sudo /usr/bin/systemctl stop update-engine.service  
+sudo /usr/bin/systemctl mask update-engine.service  
+sudo reboot  
+``
