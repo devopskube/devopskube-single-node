@@ -1,6 +1,9 @@
 #!/bin/bash
 set -e
 
+# External IP
+export EXTERNAL_IP=<PUBLIC_IP>
+
 # List of etcd servers (http://ip:port), comma separated
 export ETCD_ENDPOINTS="http://127.0.0.1:2379"
 
@@ -37,10 +40,10 @@ export USE_CALICO=false
 export CONTAINER_RUNTIME=docker
 
 # Advertised IP of the master (cluster IP that is)
-export ADVERTISE_IP=<YOUR_IP>
+export ADVERTISE_IP=172.17.42.1
 
-# Port to open the API on to the external
-export EXTERNAL_SSL_PORT=444
+# Port to open the KUBE-API on to the external
+export EXTERNAL_SSL_PORT=8443
 
 # -------------
 
@@ -232,6 +235,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-proxy
+    imagePullPolicy: IfNotPresent
     image: ${HYPERKUBE_IMAGE_REPO}:$K8S_VER
     command:
     - /hyperkube
@@ -270,6 +274,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-apiserver
+    imagePullPolicy: IfNotPresent
     image: ${HYPERKUBE_IMAGE_REPO}:$K8S_VER
     command:
     - /hyperkube
@@ -279,7 +284,7 @@ spec:
     - --allow-privileged=true
     - --service-cluster-ip-range=${SERVICE_IP_RANGE}
     - --secure-port=${EXTERNAL_SSL_PORT}
-    - --advertise-address=${ADVERTISE_IP}
+    - --advertise-address=${EXTERNAL_IP}
     - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
@@ -330,6 +335,7 @@ metadata:
 spec:
   containers:
   - name: kube-controller-manager
+    imagePullPolicy: IfNotPresent
     image: ${HYPERKUBE_IMAGE_REPO}:$K8S_VER
     command:
     - /hyperkube
@@ -379,6 +385,7 @@ spec:
   hostNetwork: true
   containers:
   - name: kube-scheduler
+    imagePullPolicy: IfNotPresent
     image: ${HYPERKUBE_IMAGE_REPO}:$K8S_VER
     command:
     - /hyperkube
@@ -412,6 +419,7 @@ spec:
   containers:
     # The Calico policy controller.
     - name: kube-policy-controller
+      imagePullPolicy: IfNotPresent
       image: calico/kube-policy-controller:v0.2.0
       env:
         - name: ETCD_ENDPOINTS
@@ -477,6 +485,7 @@ spec:
     spec:
       containers:
       - name: kubedns
+        imagePullPolicy: IfNotPresent
         image: gcr.io/google_containers/kubedns-amd64:1.8
         resources:
           limits:
@@ -511,6 +520,7 @@ spec:
           name: dns-tcp-local
           protocol: TCP
       - name: dnsmasq
+        imagePullPolicy: IfNotPresent
         image: gcr.io/google_containers/kube-dnsmasq-amd64:1.4
         livenessProbe:
           httpGet:
@@ -534,6 +544,7 @@ spec:
           name: dns-tcp
           protocol: TCP
       - name: healthz
+        imagePullPolicy: IfNotPresent
         image: gcr.io/google_containers/exechealthz-amd64:1.2
         resources:
           limits:
@@ -614,6 +625,7 @@ spec:
     spec:
       containers:
         - image: gcr.io/google_containers/heapster:v1.2.0
+          imagePullPolicy: IfNotPresent
           name: heapster
           livenessProbe:
             httpGet:
@@ -634,6 +646,7 @@ spec:
             - /heapster
             - --source=kubernetes.summary_api:''
         - image: gcr.io/google_containers/addon-resizer:1.6
+          imagePullPolicy: IfNotPresent
           name: heapster-nanny
           resources:
             limits:
@@ -717,6 +730,7 @@ spec:
     spec:
       containers:
       - name: kubernetes-dashboard
+        imagePullPolicy: IfNotPresent
         image: gcr.io/google_containers/kubernetes-dashboard-amd64:v1.4.1
         resources:
           limits:
