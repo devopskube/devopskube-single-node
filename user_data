@@ -2,13 +2,13 @@
 set -e
 
 # External IP
-export EXTERNAL_IP=<PUBLIC_IP>
+export ADVERTISE_IP=<PUBLIC_IP>
 
 # List of etcd servers (http://ip:port), comma separated
 export ETCD_ENDPOINTS="http://127.0.0.1:2379"
 
 # Specify the version (vX.Y.Z) of Kubernetes assets to deploy
-export K8S_VER=v1.4.3_coreos.0
+export K8S_VER=v1.4.5_coreos.0
 
 # Hyperkube image repository to use.
 export HYPERKUBE_IMAGE_REPO=quay.io/coreos/hyperkube
@@ -38,9 +38,6 @@ export USE_CALICO=false
 
 # Determines the container runtime for kubernetes to use. Accepts 'docker' or 'rkt'.
 export CONTAINER_RUNTIME=docker
-
-# Advertised IP of the master (cluster IP that is)
-export ADVERTISE_IP=172.17.42.1
 
 # Port to open the KUBE-API on to the external
 export EXTERNAL_SSL_PORT=8443
@@ -241,6 +238,7 @@ spec:
     - /hyperkube
     - proxy
     - --master=http://127.0.0.1:8080
+    - --hostname-override=${ADVERTISE_IP}
     securityContext:
       privileged: true
     volumeMounts:
@@ -284,7 +282,7 @@ spec:
     - --allow-privileged=true
     - --service-cluster-ip-range=${SERVICE_IP_RANGE}
     - --secure-port=${EXTERNAL_SSL_PORT}
-    - --advertise-address=${EXTERNAL_IP}
+    - --advertise-address=${ADVERTISE_IP}
     - --admission-control=NamespaceLifecycle,LimitRanger,ServiceAccount,DefaultStorageClass,ResourceQuota
     - --tls-cert-file=/etc/kubernetes/ssl/apiserver.pem
     - --tls-private-key-file=/etc/kubernetes/ssl/apiserver-key.pem
