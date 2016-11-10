@@ -16,7 +16,16 @@ coreos:
             Name=eth0
 
             [Network]
+            DHCP=ipv4
+            Address=<PUBLIC_IP>
+            Gateway=<PUBLIC_IP_GW>
+            DNS=<DNS_1>
+            DNS=<DNS_2>
             DNS=8.8.8.8
+
+            [DHCP]
+            UseDNS=false
+            CriticalConnection=true
         - name: etcd2.service
           command: start
         - name: fleet.service
