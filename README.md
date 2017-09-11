@@ -8,7 +8,7 @@ In the following, I am trying to re-play, what I did and provide some links and 
 
 Most of the following was taken from [The Hyperpessimist](https://xivilization.net/~marek/blog/2014/08/04/installing-coreos/). I chose the usual Ubuntu-Iso (note, use the ISO and do not install the image), which is offered by netcup as a base to be able to install coreos.
 
-The following should be done using the VNC-console, since we are using the Live-CD to install core-os on the drive (/dev/sda at netcup). Use `System Rescue CD 4.2.0` at netcup (use Options: E (altker64 with more choices) --> 2. (all files cached to memory))
+Please start the Rescue System on your netcup system and connect to it using SSH (User: root) and the provided key). No need to use the VNC-console anymore.
 
 ``
 wget https://raw.github.com/coreos/init/master/bin/coreos-install
@@ -16,7 +16,7 @@ wget https://raw.github.com/coreos/init/master/bin/coreos-install
 
 To install CoreOS in a "non-cloud" environment like netcup, you do need to provide an adopted cloud-config. This cloud-config file contains the public SSH-key, so that you are able to access the server using SSH with a key. Be sure to generate this key and put the public part of it into the `ssh-authorized-keys` section of the cloud-config file.  To be able to use this config-file, you do need to upload it to a server, where you can fetch this file via a wget, so that coreos can use it. If you don't know how to generate an SSH-key take a look into the [github help](https://help.github.com/articles/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent/). An example can be found in the repository [devopskube-single-node](https://www.github.com/devopskube/devopskube-single-node/).
 
-In the cloud-config file you will furthermore find the public IP of the server, this needs to get adopted as well. Right now it is defined as 192.168.0.1, which will not get routed to the internet. This file then needs to get copied to the instance, where you do like to install the coreos system. I put my personal file into my blog, where I can reach it during the further installation procedure via wget:
+In the [cloud-config](https://github.com/devopskube/devopskube-single-node/blob/master/cloud-config.yml) file you will furthermore find the public IP of the server, this needs to get adopted to your own needs as well. Right now it is defined as 192.168.0.1, which will not get routed to the internet. This file then needs to get copied to the instance, where you do like to install the coreos system. All those files can be copied to the system using SCP.
 
 Afterwards the CoreOS installer can be called using the following commands:
 
@@ -25,7 +25,7 @@ chmod u+x coreos-install
 bash coreos-install -d /dev/vda -C alpha -c cloud-config.yml
 ``
 
-After the above described install, which can take some time, the system can be rebooted (please make sure, that the CD Rom is detached). The system is then reachable via the configured IP and the configured SSH-key.
+After the above described install, which can take some time, the system can be rebooted (please make sure, that the Rescue System is disabled). The system is then reachable via the configured IP and the configured SSH-key.
 
 >NOTE: You will not be able to login to your system by password, just via the given SSH-key
 
@@ -74,7 +74,9 @@ export EXTERNAL_SSL_PORT=8443
 
 Furthermore, to be able to provide SSL via kube-lego for our own services, we do need to change the ssl port in the section `kube-apiserver`. There the `hostPort` should be changed from 443 to 444. All of this is already done in the corresponding user-data in this repository.
 
->NOTE: This file is copied form the mentioned remote repository as well. The used version is for Kubernetes 1.4.3, and there could be changes in this file for future versions.
+The ADVERTISE_IP should be adopted to your personal needs as well.
+
+>NOTE: This file is copied form the mentioned remote repository as well. The used version is for Kubernetes 1.5.4, and there could be changes in this file for future versions.
 
 Ĉopy the user data to the remote host:
 
@@ -99,13 +101,31 @@ sudo /var/lib/coreos-kubernetes/user_data
 ### Execute kubectl
 
 To be able to execute kubectl on your local machine, you have to provide a valid kubeconfig. There is
-one in this repository, but it needs to get adopted. Afterwards, you are able to use the following
-commands:
+one in this repository, but it needs to get adopted (PUBLIC_IP_HOST).
+
+The kubectl client can be downloaded using the following command:
+
+```
+curl -O https://storage.googleapis.com/kubernetes-release/release/v1.6.1/bin/linux/amd64/kubectl
+chmod +x kubectl
+mv kubectl /usr/local/bin/kubectl
+```
+
+Afterwards, you are able to use the following commands to connect to your kubernetes cluster:
 
 ``
 export KUBECONFIG="${KUBECONFIG}:$(pwd)/kubeconfig"
 kubectl config use-context netcup
 ``
+
+## Connect via Web-Browser
+
+We did install the k8s Dashboard, and you can connect to it using your Web-Browser. Please use the
+following URL:
+
+```
+https://YOUR_HOST:8443/api/v1/proxy/namespaces/kube-system/services/kubernetes-dashboard/#/pod?namespace=default
+```
 
 ### Pre-Requisites to use UI (SSL-Login-Certificate)
 
@@ -128,3 +148,11 @@ sudo /usr/bin/systemctl stop update-engine.service
 sudo /usr/bin/systemctl mask update-engine.service  
 sudo reboot  
 ``
+
+## Script Kiddies
+
+sudo cp /usr/lib/systemd/system/sshd.socket /etc/systemd/system/sshd.socket
+sudo vim /etc/systemd/system/sshd.socket (change listenstream port to eg 24)
+sudo systemctl daemon-reload
+
+see https://coreos.com/os/docs/latest/customizing-sshd.html
